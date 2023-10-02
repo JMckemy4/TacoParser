@@ -19,7 +19,7 @@ namespace LoggingKata
 
             // use File.ReadAllLines(path) to grab all the lines from your csv file
             // Log and error if you get 0 lines and a warning if you get 1 line
-            var lines = File.ReadAllLines(csvPath);
+            string[] lines = File.ReadAllLines(csvPath);
             if (lines.Length == 0)
             {
                 logger.LogError("No data found in the CSV file.");
@@ -36,7 +36,7 @@ namespace LoggingKata
             var parser = new TacoParser();
 
             // Grab an IEnumerable of locations using the Select command: var locations = lines.Select(parser.Parse);
-            var locations = lines.Select(parser.Parse).ToArray();
+            var locations = lines.Select(line => parser.Parse(line)).ToArray();
 
             // DON'T FORGET TO LOG YOUR STEPS
 
@@ -53,39 +53,41 @@ namespace LoggingKata
             // Do a loop for your locations to grab each location as the origin (perhaps: `locA`)
             for (int i = 0; i < locations.Length; i++)
             {
-                // Create a new corA Coordinate with your locA's lat and long
-                var locA = new GeoCoordinate(locations[i].Location.Latitude, locations[i].Location.Longitude);                // Now, do another loop on the locations with the scope of your first loop, so you can grab the "destination" location (perhaps: `locB`)
-                for (int j = i + 1; j < locations.Length; j++)
-                {
-                    // Create a new Coordinate with your locB's lat and long
-                    var locB = new GeoCoordinate(locations[j].Location.Latitude, locations[j].Location.Longitude);
-                    // Now, compare the two using `.GetDistanceTo()`, which returns a double
-                    var distance = locA.GetDistanceTo(locB);
+                var locA = locations[i];
+                var corA = new GeoCoordinate(locA.Location.Latitude, locA.Location.Longitude);
 
-                    //  Update the furthest locations and distance if needed
-                    if (distance > maxDistance)
+                // Now, do another loop on the locations with the scope of your first loop, so you can grab the "destination" location (perhaps: `locB`)
+                for (int j = 0; j < locations.Length; j++)
+                {
+                    var locB = locations[j];
+                    var corB = new GeoCoordinate(locB.Location.Latitude, locB.Location.Longitude);
+
+                    // Calculate the distance between locA and locB
+                    double distanceInMeters = corA.GetDistanceTo(corB);
+
+                    // Update the furthest locations and distance if needed
+                    if (distanceInMeters > maxDistance)
                     {
-                        maxDistance = distance;
-                        maxLocation1 = locations[i];
-                        maxLocation2 = locations[j];
+                        maxDistance = distanceInMeters;
+                        maxLocation1 = locA;
+                        maxLocation2 = locB;
                     }
                 }
             }
+
             if (maxLocation1 != null && maxLocation2 != null)
             {
+
+                double maxDistanceInMiles = maxDistance / 1609.34;
                 logger.LogInfo($"The two Taco Bell locations furthest from each other are: ");
                 logger.LogInfo($"Location 1: {maxLocation1.Name}");
                 logger.LogInfo($"Location 2: {maxLocation2.Name}");
-                logger.LogInfo($"Distance between them: {maxDistance}");
+                logger.LogInfo($"Distance between them: {maxDistanceInMiles:F2} miles");
             }
             else
             {
                 logger.LogWarning("Unable to determine the furthest Taco Bell locations.");
             }
-            // If the distance is greater than the currently saved distance, update the distance and the two `ITrackable` variables you set above
-
-            // Once you've looped through everything, you've found the two Taco Bells farthest away from each other.
         }
     }
 }
-

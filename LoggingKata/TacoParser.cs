@@ -41,9 +41,12 @@ namespace LoggingKata
             // that conforms to ITrackable
 
             // which is similar to parsing a string as an `int`
-            var tacoBell = new TacoBell(name, latitude, longitude);
+            var tacoBell = new TacoBell();
 
             // Then, you'll need an instance of the TacoBell class
+            
+            tacoBell.Name = name;
+            tacoBell.Location = new Point(latitude, longitude);
             // With the name and point set correctly
 
             // Then, return the instance of your TacoBell class
